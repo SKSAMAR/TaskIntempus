@@ -1,9 +1,14 @@
 package com.example.taskintemp.presentation.checkIn.components
 
+import android.os.Build
+import android.widget.TimePicker
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -19,6 +24,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.viewinterop.AndroidView
 import com.example.taskintemp.presentation.common.ui.theme.CardMainColor
 import com.example.taskintemp.presentation.common.ui.theme.CardMainColorDark
 import com.example.taskintemp.presentation.mainscreen.MainViewModel
@@ -30,31 +36,24 @@ fun CurrentDateInfoContent(
     viewModel: MainViewModel,
     modifier: Modifier = Modifier
 ) {
-    val state = viewModel.state.value
-    Card(
-        modifier = modifier
-            .fillMaxWidth()
-            .height(150.sdp),
-        colors = CardDefaults.cardColors(containerColor = CardMainColor),
-        shape = RoundedCornerShape(12.sdp)
-    ) {
-        Box(modifier = Modifier.fillMaxSize()) {
-
+    Column {
+        AndroidView(
+            factory = { context ->
+                TimePicker(context).apply {
+                    viewModel.modifyTimePicker(this)
+                }
+            },
+            modifier = Modifier.fillMaxWidth()
+        )
+        Spacer(modifier = Modifier.height(15.sdp))
+        AnimatedVisibility(viewModel.invalidTimeMessage.isNotEmpty()) {
             Text(
-                text = state.receivedResponse?.detailedDate ?: "Time",
-                fontSize = 32.sp,
+                modifier = Modifier.fillMaxWidth(),
+                text = viewModel.invalidTimeMessage,
                 textAlign = TextAlign.Center,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.surface
+                fontSize = 12.ssp,
+                color = MaterialTheme.colorScheme.error
             )
-
-            Row(
-                modifier = Modifier.fillMaxWidth().background(CardMainColorDark)
-                    .align(Alignment.BottomCenter),
-                horizontalArrangement = Arrangement.Center
-            ) {
-                Text(modifier = Modifier.padding(vertical = 7.sdp) , text = "Tuesday", color = MaterialTheme.colorScheme.surface, fontSize = 18.ssp, fontWeight = FontWeight.ExtraBold)
-            }
         }
     }
 }

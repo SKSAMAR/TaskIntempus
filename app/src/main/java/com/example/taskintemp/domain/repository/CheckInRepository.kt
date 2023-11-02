@@ -1,12 +1,15 @@
 package com.example.taskintemp.domain.repository
 
+import com.example.taskintemp.data.db.entity.Employee
 import com.example.taskintemp.data.remote.dto.DateTimeDto
 import com.example.taskintemp.domain.model.DateModel
+import kotlinx.coroutines.flow.Flow
 
 interface CheckInRepository {
 
     suspend fun getApiDateTime(): DateTimeDto
-
+    suspend fun insertCheckIn(timeStamp: String)
     fun getCurrentDateTimeModel(): DateModel
+    fun getAllCheckInsRows(): Flow<List<Employee>>
 
 }

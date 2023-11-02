@@ -1,6 +1,8 @@
 package com.example.taskintemp.domain.usesCases
 
+import com.example.taskintemp.data.db.entity.Employee
 import com.example.taskintemp.data.remote.dto.DateTimeDto
+import com.example.taskintemp.domain.model.TimeValidation
 import com.example.taskintemp.domain.repository.CheckInRepository
 import com.example.taskintemp.util.AppUtils.getCurrentSystemDate
 import com.example.taskintemp.util.AppUtils.getCurrentSystemDateTime
@@ -11,6 +13,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import retrofit2.HttpException
 import java.io.IOException
+import java.util.Calendar
 import javax.inject.Inject
 
 class CheckInUseCases
@@ -45,6 +48,38 @@ class CheckInUseCases
         } catch (e: Exception) {
             emit(NetworkResource.Error(e.localizedMessage ?: "An unexpected error occurred"))
         }
+    }
+
+    fun validateSelectedTime(currentDate: String, hourOfDay: Int, minute: Int) : Flow<TimeValidation> = flow {
+        try {
+
+            if (hourOfDay > Calendar.getInstance()
+                    .get(Calendar.HOUR_OF_DAY) || (hourOfDay == Calendar.getInstance()
+                    .get(Calendar.HOUR_OF_DAY) && minute > Calendar.getInstance()
+                    .get(Calendar.MINUTE))
+            ) {
+                emit(
+                    TimeValidation.Error
+                )
+            } else {
+                emit(
+                    TimeValidation.SuccessfullyValidated(DateTimeDto("$currentDate $hourOfDay:$minute"))
+                )
+            }
+
+        }catch (e: Exception){
+            emit(
+                TimeValidation.Error
+            )
+        }
+    }
+
+    suspend fun insertCheckIn(timeStamp: String) {
+        repository.insertCheckIn(timeStamp)
+    }
+
+    fun getEmployeeList(): Flow<List<Employee>>  {
+       return repository.getAllCheckInsRows()
     }
 
 }
