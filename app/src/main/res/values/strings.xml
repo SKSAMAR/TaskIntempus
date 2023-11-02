@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">TaskIntemp</string>
+    <string name="base_url">https://somebaseurl.com/</string>
+</resources>
