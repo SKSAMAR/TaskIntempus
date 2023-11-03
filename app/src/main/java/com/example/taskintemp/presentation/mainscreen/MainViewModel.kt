@@ -1,11 +1,6 @@
 package com.example.taskintemp.presentation.mainscreen
 
-import android.os.Build
-import android.util.Log
-import android.widget.TimePicker
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.viewModelScope
@@ -18,7 +13,7 @@ import com.example.taskintemp.domain.model.TimeValidation
 import com.example.taskintemp.domain.usesCases.CheckInUseCases
 import com.example.taskintemp.presentation.common.BaseViewModel
 import com.example.taskintemp.util.AppUtils.isSafeClick
-import com.example.taskintemp.util.NetworkResource
+import com.example.taskintemp.util.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collectLatest
@@ -31,58 +26,48 @@ import javax.inject.Inject
 class MainViewModel
 @Inject constructor(private val useCases: CheckInUseCases) : BaseViewModel<DateModel>() {
 
-
     var invalidTimeMessage by mutableStateOf("")
-    private var selectedTimeDto: DateTimeDto? = null
-    private var allCheckIns by mutableStateOf(emptyList<Employee>())
+    var operationLoading by mutableStateOf(false)
+    var selectedTimeDto by mutableStateOf<DateTimeDto?>(null)
+    var allCheckInsList by mutableStateOf(emptyList<Employee>())
 
     init {
-        getDateTimeFromApi()
         fetchAllCheckIns()
+        getDateTimeFromApi()
     }
 
     private fun getDateTimeFromApi() {
 //        useCases.getApiDateTime().onEach { enable when api endpoint becomes use full
         useCases.getMockedApiDateTime().onEach {
             when (it) {
-                is NetworkResource.Success -> {
-                    _state.value = ScreenState(receivedResponse = it.data?.toDateModel())
+                is Resource.Success -> {
+                    selectedTimeDto = it.data
+                    val dateModel = it.data?.toDateModel()
+                    _state.value = ScreenState(receivedResponse = dateModel)
+                    validateTimeSelected(
+                        hours = dateModel?.hour ?: 0,
+                        minutes = dateModel?.minute ?: 0
+                    )
                 }
 
-                is NetworkResource.Loading -> {
+                is Resource.Loading -> {
                     _state.value = ScreenState(isLoading = true)
                 }
 
-                is NetworkResource.Error -> {
+                is Resource.Error -> {
                     _state.value = ScreenState(error = it.message ?: "Some Error")
                 }
             }
         }.launchIn(viewModelScope)
     }
 
-    fun modifyTimePicker(timePicker: TimePicker) {
-        timePicker.apply {
-            setIs24HourView(true)
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                hour = state.value.receivedResponse?.hour ?: 0
-                minute = state.value.receivedResponse?.minute ?: 0
-            } else {
-                currentHour = state.value.receivedResponse?.hour ?: 0
-                currentMinute = state.value.receivedResponse?.minute ?: 0
-            }
-        }
-        timePicker.setOnTimeChangedListener { view, hourOfDay, minute ->
-            validateTimeSelected(hourOfDay, minute)
-        }
-    }
-
-    private fun validateTimeSelected(hours: Int, minutes: Int) {
+    fun validateTimeSelected(hours: Int, minutes: Int) {
         useCases.validateSelectedTime(state.value.receivedResponse?.date ?: "", hours, minutes)
             .onEach {
                 when (it) {
-                    TimeValidation.Error -> {
+                    is TimeValidation.Error -> {
                         invalidTimeMessage = "Time cannot be greater than current system time"
-                        selectedTimeDto = null
+                        selectedTimeDto = it.selectedTimeDate
                     }
 
                     is TimeValidation.SuccessfullyValidated -> {
@@ -94,19 +79,33 @@ class MainViewModel
     }
 
     fun addCheckIn() {
-        if (isSafeClick()) {
-            viewModelScope.launch(Dispatchers.IO) {
-                selectedTimeDto?.dateTime?.let {
-                    useCases.insertCheckIn(it)
-                }
+        if (isSafeClick() && invalidTimeMessage.isEmpty()) {
+            selectedTimeDto?.dateTime?.let { dateTime ->
+                useCases.getEmployeeByTimestamp(dateTime).onEach {
+                    when (it) {
+                        is Resource.Error -> {
+                            operationLoading = false
+                            invalidTimeMessage = it.message ?: ""
+                        }
+
+                        is Resource.Loading -> {
+                            operationLoading = true
+                        }
+                        is Resource.Success -> {
+                            operationLoading = false
+                            invalidTimeMessage = ""
+                            useCases.insertCheckIn(dateTime)
+                        }
+                    }
+                }.launchIn(viewModelScope)
             }
         }
     }
 
-    private fun fetchAllCheckIns(){
-        viewModelScope.launch(Dispatchers.IO){
+    private fun fetchAllCheckIns() {
+        viewModelScope.launch(Dispatchers.Main) {
             useCases.getEmployeeList().collectLatest {
-                allCheckIns = it
+                allCheckInsList = it
             }
         }
     }

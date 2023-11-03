@@ -21,13 +21,17 @@ class CheckInRepositoryImp
         return api.getDateTime()
     }
 
-    override suspend fun insertCheckIn(timeStamp: String) {
-       employeeDao.insertCheckInTime(employee = Employee(timeStamp = timeStamp))
+    override suspend fun insertCheckIn(check_in_date: String) {
+       employeeDao.insertCheckInTime(employee = Employee(check_in_date = check_in_date))
     }
 
     override fun getCurrentDateTimeModel(): DateModel {
         val primaryDateTime = getCurrentSystemDateTime()
         return DateTimeDto(primaryDateTime).toDateModel()
+    }
+
+    override suspend fun getEmployeeByTimestamp(check_in_date: String): Employee? {
+        return employeeDao.getEmployeeByTimestamp(check_in_date)
     }
 
     override fun getAllCheckInsRows(): Flow<List<Employee>> {

@@ -56,7 +56,7 @@ object CheckInModule {
         Room.databaseBuilder(
             context.applicationContext,
             EmployeeDb::class.java,
-            "employee_db"
+            context.getString(R.string.database_name)
         ).addMigrations().fallbackToDestructiveMigration().build()
 
 

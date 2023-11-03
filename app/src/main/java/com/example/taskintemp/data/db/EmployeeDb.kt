@@ -6,7 +6,7 @@ import com.example.taskintemp.data.db.entity.Employee
 import com.example.taskintemp.data.db.dao.EmployeeDao
 
 
-@Database(entities = [Employee::class], version = 3)
+@Database(entities = [Employee::class], version = 1, exportSchema = false)
 abstract class EmployeeDb : RoomDatabase() {
     abstract fun employeeDao(): EmployeeDao
 }

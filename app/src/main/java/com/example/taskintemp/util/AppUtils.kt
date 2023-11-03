@@ -1,5 +1,7 @@
 package com.example.taskintemp.util
 
+import android.app.TimePickerDialog
+import android.content.Context
 import android.os.Build
 import android.os.SystemClock
 import java.text.SimpleDateFormat
@@ -33,4 +35,20 @@ object AppUtils {
         val currentTime = System.currentTimeMillis()
         return SimpleDateFormat("yyyy-MM-dd", Locale.US).format(currentTime)
     }
+
+
+    fun Context.showTimePickerDialog(
+        hour: Int,
+        minute: Int,
+        newTimeSelected: (hour: Int, minute: Int) -> Unit
+    ) {
+        val timePickerDialog = TimePickerDialog(this,
+            { view, hourOfDay, minutesOfDay -> newTimeSelected(hourOfDay, minutesOfDay) },
+            hour,
+            minute,
+            true
+        )
+        timePickerDialog.show()
+    }
+
 }

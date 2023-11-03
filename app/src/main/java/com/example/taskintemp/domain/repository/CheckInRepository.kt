@@ -8,8 +8,9 @@ import kotlinx.coroutines.flow.Flow
 interface CheckInRepository {
 
     suspend fun getApiDateTime(): DateTimeDto
-    suspend fun insertCheckIn(timeStamp: String)
+    suspend fun insertCheckIn(check_in_date: String)
     fun getCurrentDateTimeModel(): DateModel
+    suspend fun getEmployeeByTimestamp(check_in_date: String): Employee?
     fun getAllCheckInsRows(): Flow<List<Employee>>
 
 }

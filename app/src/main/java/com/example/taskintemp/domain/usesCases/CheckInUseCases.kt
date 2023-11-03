@@ -5,8 +5,7 @@ import com.example.taskintemp.data.remote.dto.DateTimeDto
 import com.example.taskintemp.domain.model.TimeValidation
 import com.example.taskintemp.domain.repository.CheckInRepository
 import com.example.taskintemp.util.AppUtils.getCurrentSystemDate
-import com.example.taskintemp.util.AppUtils.getCurrentSystemDateTime
-import com.example.taskintemp.util.NetworkResource
+import com.example.taskintemp.util.Resource
 import com.google.gson.Gson
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -19,67 +18,81 @@ import javax.inject.Inject
 class CheckInUseCases
 @Inject constructor(private val repository: CheckInRepository) {
 
-    fun getApiDateTime(): Flow<NetworkResource<DateTimeDto>> = flow {
+    fun getApiDateTime(): Flow<Resource<DateTimeDto>> = flow {
         try {
-            emit(NetworkResource.Loading())
+            emit(Resource.Loading())
             delay(2000L)
             val dataTimeDto = repository.getApiDateTime()
-            emit(NetworkResource.Success(dataTimeDto))
+            emit(Resource.Success(dataTimeDto))
         } catch (e: HttpException) {
-            emit(NetworkResource.Error(e.localizedMessage ?: "An unexpected error occurred"))
+            emit(Resource.Error(e.localizedMessage ?: "An unexpected error occurred"))
         } catch (e: IOException) {
             emit(
-                NetworkResource.Error(
+                Resource.Error(
                     e.localizedMessage ?: "Couldn't reach server. Check your internet connection."
                 )
             )
         }
     }
 
-    fun getMockedApiDateTime(): Flow<NetworkResource<DateTimeDto>> = flow {
+    fun getMockedApiDateTime(): Flow<Resource<DateTimeDto>> = flow {
         //mock fake request
         try {
-            emit(NetworkResource.Loading())
+            emit(Resource.Loading())
             delay(2000L)
             val date = getCurrentSystemDate()+" 06:30"
             val jsonResponse = "{\"dateTime\": \"$date\"}"
             val dataTimeDto = Gson().fromJson(jsonResponse, DateTimeDto::class.java)
-            emit(NetworkResource.Success(dataTimeDto))
+            emit(Resource.Success(dataTimeDto))
         } catch (e: Exception) {
-            emit(NetworkResource.Error(e.localizedMessage ?: "An unexpected error occurred"))
+            emit(Resource.Error(e.localizedMessage ?: "An unexpected error occurred"))
         }
     }
 
     fun validateSelectedTime(currentDate: String, hourOfDay: Int, minute: Int) : Flow<TimeValidation> = flow {
+        val fixedHour = if (hourOfDay < 10) "0$hourOfDay" else "$hourOfDay"
+        val fixedMinutes = if (minute < 10) "0$minute" else "$minute"
         try {
-
-            if (hourOfDay > Calendar.getInstance()
-                    .get(Calendar.HOUR_OF_DAY) || (hourOfDay == Calendar.getInstance()
-                    .get(Calendar.HOUR_OF_DAY) && minute > Calendar.getInstance()
-                    .get(Calendar.MINUTE))
+            if (hourOfDay > Calendar.getInstance().get(Calendar.HOUR_OF_DAY) || (hourOfDay == Calendar.getInstance()
+                .get(Calendar.HOUR_OF_DAY) && minute > Calendar.getInstance().get(Calendar.MINUTE))
             ) {
                 emit(
-                    TimeValidation.Error
+                    TimeValidation.Error(DateTimeDto("$currentDate $fixedHour:$fixedMinutes"))
                 )
             } else {
                 emit(
-                    TimeValidation.SuccessfullyValidated(DateTimeDto("$currentDate $hourOfDay:$minute"))
+                    TimeValidation.SuccessfullyValidated(DateTimeDto("$currentDate $fixedHour:$fixedMinutes"))
                 )
             }
-
         }catch (e: Exception){
             emit(
-                TimeValidation.Error
+                TimeValidation.Error(DateTimeDto("$currentDate $fixedHour:$fixedMinutes"))
             )
         }
     }
 
     suspend fun insertCheckIn(timeStamp: String) {
+        // more logic will be written in case
         repository.insertCheckIn(timeStamp)
     }
 
     fun getEmployeeList(): Flow<List<Employee>>  {
-       return repository.getAllCheckInsRows()
+        // more logic will be written in case
+        return repository.getAllCheckInsRows()
+    }
+
+    fun getEmployeeByTimestamp(timeStamp: String): Flow<Resource<String>> = flow {
+        try {
+            emit(Resource.Loading())
+            val response = repository.getEmployeeByTimestamp(timeStamp)
+            if (response == null){
+                emit(Resource.Success(""))
+            } else {
+                emit(Resource.Error("Current Time is Already Checked In"))
+            }
+        } catch (e: Exception) {
+            emit(Resource.Error(e.localizedMessage ?: "An unexpected error occurred"))
+        }
     }
 
 }
