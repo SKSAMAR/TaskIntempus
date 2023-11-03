@@ -33,9 +33,9 @@ class MainViewModel
 
 
     init {
-        getMostRecentCheckIn()
+//      getMostRecentCheckIn()
         fetchAllCheckIns()
-//        getDateTimeFromApi()
+        getDateTimeFromApi()
     }
 
     private fun getDateTimeFromApi() {
@@ -64,7 +64,7 @@ class MainViewModel
         }.launchIn(viewModelScope)
     }
 
-    /**
+    /** Not of use anymore
     fun validateTimeSelected(hours: Int, minutes: Int) {
     useCases.validateSelectedTime(state.value.receivedResponse?.date ?: "", hours, minutes)
     .onEach {
