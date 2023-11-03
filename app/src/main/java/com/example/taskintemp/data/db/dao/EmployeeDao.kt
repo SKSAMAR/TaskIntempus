@@ -18,4 +18,7 @@ interface EmployeeDao {
 
     @Query("SELECT * FROM Employee WHERE check_in_date = :check_in_date LIMIT 1")
     suspend fun getEmployeeByTimestamp(check_in_date: String): Employee?
+
+    @Query("SELECT * FROM Employee ORDER BY id DESC LIMIT 1")
+    suspend fun getMostRecentCheckIn(): Employee?
 }

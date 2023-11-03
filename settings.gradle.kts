@@ -14,5 +14,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "TaskIntemp"
+rootProject.name = "TaskIntempus"
 include(":app")

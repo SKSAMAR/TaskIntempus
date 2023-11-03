@@ -31,9 +31,11 @@ class MainViewModel
     var selectedTimeDto by mutableStateOf<DateTimeDto?>(null)
     var allCheckInsList by mutableStateOf(emptyList<Employee>())
 
+
     init {
+        getMostRecentCheckIn()
         fetchAllCheckIns()
-        getDateTimeFromApi()
+//        getDateTimeFromApi()
     }
 
     private fun getDateTimeFromApi() {
@@ -44,7 +46,8 @@ class MainViewModel
                     selectedTimeDto = it.data
                     val dateModel = it.data?.toDateModel()
                     _state.value = ScreenState(receivedResponse = dateModel)
-                    validateTimeSelected(
+                    validateDateSelected(
+                        dateSelected = dateModel?.date ?: "",
                         hours = dateModel?.hour ?: 0,
                         minutes = dateModel?.minute ?: 0
                     )
@@ -61,12 +64,30 @@ class MainViewModel
         }.launchIn(viewModelScope)
     }
 
+    /**
     fun validateTimeSelected(hours: Int, minutes: Int) {
-        useCases.validateSelectedTime(state.value.receivedResponse?.date ?: "", hours, minutes)
+    useCases.validateSelectedTime(state.value.receivedResponse?.date ?: "", hours, minutes)
+    .onEach {
+    when (it) {
+    is TimeValidation.Error -> {
+    invalidTimeMessage = "Date Time cannot be greater than current system time"
+    selectedTimeDto = it.selectedTimeDate
+    }
+    is TimeValidation.SuccessfullyValidated -> {
+    invalidTimeMessage = ""
+    selectedTimeDto = it.selectedTimeDate
+    }
+    }
+    }.launchIn(viewModelScope)
+    }
+     **/
+
+    fun validateDateSelected(dateSelected: String, hours: Int, minutes: Int) {
+        useCases.validateSelectedDateTime(dateSelected, hours, minutes)
             .onEach {
                 when (it) {
                     is TimeValidation.Error -> {
-                        invalidTimeMessage = "Time cannot be greater than current system time"
+                        invalidTimeMessage = "Future Date time is not allowed"
                         selectedTimeDto = it.selectedTimeDate
                     }
 
@@ -91,6 +112,7 @@ class MainViewModel
                         is Resource.Loading -> {
                             operationLoading = true
                         }
+
                         is Resource.Success -> {
                             operationLoading = false
                             invalidTimeMessage = ""
@@ -101,6 +123,28 @@ class MainViewModel
             }
         }
     }
+
+
+    private fun getMostRecentCheckIn() {
+        useCases.getMostRecentCheckIn().onEach {
+            when (it) {
+                is Resource.Error -> {
+                    getDateTimeFromApi()
+                }
+
+                is Resource.Loading -> {
+                    _state.value = ScreenState(isLoading = true)
+                }
+
+                is Resource.Success -> {
+                    val dateTimeDto = DateTimeDto(dateTime = it.data?.check_in_date ?: "")
+                    selectedTimeDto = dateTimeDto
+                    _state.value = ScreenState(receivedResponse = selectedTimeDto?.toDateModel())
+                }
+            }
+        }.launchIn(viewModelScope)
+    }
+
 
     private fun fetchAllCheckIns() {
         viewModelScope.launch(Dispatchers.Main) {

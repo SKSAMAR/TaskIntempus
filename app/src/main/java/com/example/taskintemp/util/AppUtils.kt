@@ -1,18 +1,19 @@
 package com.example.taskintemp.util
 
+import android.app.DatePickerDialog
+import android.app.DatePickerDialog.OnDateSetListener
 import android.app.TimePickerDialog
 import android.content.Context
-import android.os.Build
 import android.os.SystemClock
+import android.widget.DatePicker
+import android.widget.Toast
 import java.text.SimpleDateFormat
-import java.time.Instant
-import java.time.format.DateTimeFormatter
-import java.util.Locale
 
 
 object AppUtils {
 
     private var mLastClickTime: Long = 0
+
     fun isSafeClick(): Boolean {
         return if (SystemClock.elapsedRealtime() - mLastClickTime < 1000) {
             false
@@ -23,17 +24,13 @@ object AppUtils {
     }
 
     fun getCurrentSystemDateTime(): String {
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm").format(Instant.now())
-        } else {
-            val currentTime = System.currentTimeMillis()
-            return SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.US).format(currentTime)
-        }
+        val currentTime = System.currentTimeMillis()
+        return SimpleDateFormat("yyyy-MM-dd HH:mm").format(currentTime)
     }
 
     fun getCurrentSystemDate(): String {
         val currentTime = System.currentTimeMillis()
-        return SimpleDateFormat("yyyy-MM-dd", Locale.US).format(currentTime)
+        return SimpleDateFormat("yyyy-MM-dd").format(currentTime)
     }
 
 
@@ -50,5 +47,27 @@ object AppUtils {
         )
         timePickerDialog.show()
     }
+
+
+    fun Context.showDatePickerDialog(
+        dYear: Int,
+        dMonth: Int,
+        dDay: Int,
+        newDateSelected: (date: String) -> Unit
+    ) {
+        val fromDatePicker = OnDateSetListener { _: DatePicker?, year: Int, monthOfYear: Int, dayOfMonth: Int ->
+
+            val fixedMonth = if (monthOfYear < 10) "0$monthOfYear" else "$monthOfYear"
+            val fixedDay = if (dayOfMonth < 10) "0$dayOfMonth" else "$dayOfMonth"
+
+            newDateSelected.invoke("$year-$fixedMonth-$fixedDay")
+        }
+        DatePickerDialog(
+            this, fromDatePicker,
+           dYear, dMonth, dDay
+        ).show()
+    }
+
+    fun Context.showToast(message: String) = Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
 
 }

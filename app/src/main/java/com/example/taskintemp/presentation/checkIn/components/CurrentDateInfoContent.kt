@@ -1,6 +1,7 @@
 package com.example.taskintemp.presentation.checkIn.components
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -8,10 +9,10 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedCard
@@ -22,20 +23,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.withStyle
 import com.example.taskintemp.R
 import com.example.taskintemp.data.db.entity.Employee
 import com.example.taskintemp.data.remote.dto.toDateModel
 import com.example.taskintemp.presentation.common.ui.theme.Grey
 import com.example.taskintemp.presentation.mainscreen.MainViewModel
+import com.example.taskintemp.util.AppUtils.showDatePickerDialog
 import com.example.taskintemp.util.AppUtils.showTimePickerDialog
 import ir.kaaveh.sdpcompose.sdp
 import ir.kaaveh.sdpcompose.ssp
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CheckInActionContainer(
     viewModel: MainViewModel
@@ -48,14 +46,6 @@ fun CheckInActionContainer(
         OutlinedCard(
             modifier = Modifier.align(Alignment.CenterHorizontally),
             colors = CardDefaults.outlinedCardColors(containerColor = Color.Transparent),
-            onClick = {
-                context.showTimePickerDialog(
-                    hour = dateTime?.hour ?: 0,
-                    minute = dateTime?.minute ?: 0
-                ) { hour, minute ->
-                    viewModel.validateTimeSelected(hour, minute)
-                }
-            }
         ) {
             Column(
                 modifier = Modifier
@@ -66,17 +56,40 @@ fun CheckInActionContainer(
                 Text(text = "Begin Check In", color = Grey, fontSize = 14.ssp)
                 Spacer(modifier = Modifier.height(10.sdp))
 
-                Text(
-                    text = buildAnnotatedString {
-                        append("${dateTime?.time} ")
-                        withStyle(SpanStyle(fontSize = 12.ssp, fontWeight = FontWeight.Normal)) {
-                            append(dateTime?.date ?: "")
-                        }
-                    },
-                    color = Color.White,
-                    fontWeight = FontWeight.ExtraBold,
-                    fontSize = 32.ssp
-                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        modifier = Modifier.clickable {
+                            context.showTimePickerDialog(
+                                hour = dateTime?.hour ?: 0,
+                                minute = dateTime?.minute ?: 0
+                            ) { hour, minute ->
+                                viewModel.validateDateSelected(dateTime?.date?:"" ,hour, minute)
+                            }
+                        },
+                        text = "${dateTime?.time}",
+                        color = Color.White,
+                        fontWeight = FontWeight.ExtraBold,
+                        fontSize = 32.ssp
+                    )
+                    Spacer(modifier = Modifier.width(5.sdp))
+                    Text(
+                        modifier = Modifier.clickable {
+                            context.showDatePickerDialog(
+                                dDay = dateTime?.day ?: 0,
+                                dMonth = dateTime?.month ?: 0,
+                                dYear = dateTime?.year ?: 0
+                            ) { date ->
+                                viewModel.validateDateSelected(dateSelected = date, hours = dateTime?.hour ?: 0, minutes = dateTime?.minute?:0 )
+                            }
+                        },
+                        text = dateTime?.date ?: "",
+                        color = Color.White,
+                        fontSize = 12.ssp,
+                        fontWeight = FontWeight.ExtraBold
+                    )
+                }
                 Spacer(modifier = Modifier.height(7.sdp))
                 AnimatedVisibility(visible = viewModel.invalidTimeMessage.isNotEmpty()) {
                     Spacer(modifier = Modifier.height(7.sdp))
