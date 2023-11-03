@@ -29,8 +29,8 @@ class MainViewModel
 
 
     init {
-        getMostRecentCheckIn()
-        // getDateTimeFromApi()
+         getMostRecentCheckIn()
+//         getDateTimeFromApi()
     }
 
     private fun getDateTimeFromApi() {
