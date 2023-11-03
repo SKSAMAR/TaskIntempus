@@ -46,7 +46,8 @@ class MainViewModel
                     selectedTimeDto = it.data
                     val dateModel = it.data?.toDateModel()
                     _state.value = ScreenState(receivedResponse = dateModel)
-                    validateTimeSelected(
+                    validateDateSelected(
+                        dateSelected = dateModel?.date ?: "",
                         hours = dateModel?.hour ?: 0,
                         minutes = dateModel?.minute ?: 0
                     )
@@ -63,12 +64,30 @@ class MainViewModel
         }.launchIn(viewModelScope)
     }
 
+    /**
     fun validateTimeSelected(hours: Int, minutes: Int) {
-        useCases.validateSelectedTime(state.value.receivedResponse?.date ?: "", hours, minutes)
+    useCases.validateSelectedTime(state.value.receivedResponse?.date ?: "", hours, minutes)
+    .onEach {
+    when (it) {
+    is TimeValidation.Error -> {
+    invalidTimeMessage = "Date Time cannot be greater than current system time"
+    selectedTimeDto = it.selectedTimeDate
+    }
+    is TimeValidation.SuccessfullyValidated -> {
+    invalidTimeMessage = ""
+    selectedTimeDto = it.selectedTimeDate
+    }
+    }
+    }.launchIn(viewModelScope)
+    }
+     **/
+
+    fun validateDateSelected(dateSelected: String, hours: Int, minutes: Int) {
+        useCases.validateSelectedDateTime(dateSelected, hours, minutes)
             .onEach {
                 when (it) {
                     is TimeValidation.Error -> {
-                        invalidTimeMessage = "Time cannot be greater than current system time"
+                        invalidTimeMessage = "Future Date time is not allowed"
                         selectedTimeDto = it.selectedTimeDate
                     }
 
@@ -112,9 +131,11 @@ class MainViewModel
                 is Resource.Error -> {
                     getDateTimeFromApi()
                 }
+
                 is Resource.Loading -> {
                     _state.value = ScreenState(isLoading = true)
                 }
+
                 is Resource.Success -> {
                     val dateTimeDto = DateTimeDto(dateTime = it.data?.check_in_date ?: "")
                     selectedTimeDto = dateTimeDto
