@@ -106,11 +106,9 @@ class MainViewModel
                 is Resource.Error -> {
                     getDateTimeFromApi()
                 }
-
                 is Resource.Loading -> {
                     _state.value = ScreenState(isLoading = true)
                 }
-
                 is Resource.Success -> {
                     val dateTimeDto = DateTimeDto(dateTime = it.data?.check_in_date ?: "")
                     selectedTimeDto = dateTimeDto
