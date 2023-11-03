@@ -17,6 +17,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
@@ -36,8 +37,7 @@ fun CheckInScreen(viewModel: MainViewModel) {
     val state = viewModel.state.value
     val configuration = LocalConfiguration.current
     Box(
-        modifier = Modifier
-            .fillMaxSize()
+        modifier = Modifier.fillMaxSize()
             .background(color = ContainerBackgroundColor),
         contentAlignment = Alignment.Center
     ) {
@@ -50,8 +50,7 @@ fun CheckInScreen(viewModel: MainViewModel) {
         }
         if (state.isLoading || viewModel.operationLoading) {
             CustomProgressLoader()
-        }
-        else if (state.error.isNotEmpty()) {
+        } else if (state.error.isNotEmpty()) {
             Text(
                 text = state.error,
                 fontSize = 32.sp,
@@ -66,18 +65,21 @@ fun CheckInScreen(viewModel: MainViewModel) {
 fun CheckInScreenPortrait(
     viewModel: MainViewModel
 ) {
+    val allCheckInsList = viewModel.allCheckInsList.collectAsState(initial = emptyList())
+
     Column(
         modifier = Modifier.fillMaxSize()
     ) {
         Column(
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier
+                .fillMaxWidth()
                 .padding(horizontal = 16.sdp)
         ) {
             Spacer(modifier = Modifier.height(30.sdp))
             CheckInActionContainer(viewModel)
             Spacer(modifier = Modifier.height(22.sdp))
 
-            if (viewModel.allCheckInsList.isNotEmpty()) {
+            if (allCheckInsList.value.isNotEmpty()) {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize()
                 ) {
@@ -92,7 +94,7 @@ fun CheckInScreenPortrait(
                         Spacer(modifier = Modifier.height(8.sdp))
                     }
 
-                    items(viewModel.allCheckInsList) {
+                    items(allCheckInsList.value) {
                         CheckInDataContainer(it)
                     }
                 }
@@ -120,6 +122,8 @@ fun CheckInScreenPortrait(
 fun CheckInScreenLandscape(
     viewModel: MainViewModel
 ) {
+    val allCheckInsList = viewModel.allCheckInsList.collectAsState(initial = emptyList())
+
     Row(
         modifier = Modifier.fillMaxSize(),
         verticalAlignment = Alignment.CenterVertically
@@ -136,7 +140,7 @@ fun CheckInScreenLandscape(
                 .weight(1f)
                 .padding(horizontal = 8.sdp)
         ) {
-            if (viewModel.allCheckInsList.isNotEmpty()) {
+            if (allCheckInsList.value.isNotEmpty()) {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize()
                 ) {
@@ -152,7 +156,7 @@ fun CheckInScreenLandscape(
                         Spacer(modifier = Modifier.height(8.sdp))
                     }
 
-                    items(viewModel.allCheckInsList) {
+                    items(allCheckInsList.value) {
                         CheckInDataContainer(it)
                     }
                 }

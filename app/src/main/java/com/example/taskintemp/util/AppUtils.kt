@@ -25,7 +25,7 @@ object AppUtils {
 
     fun getCurrentSystemDateTime(): String {
         val currentTime = System.currentTimeMillis()
-        return SimpleDateFormat("yyyy-MM-dd HH:mm").format(currentTime)
+        return SimpleDateFormat(Constants.TIME_STAMP_FORMAT).format(currentTime)
     }
 
     fun getCurrentSystemDate(): String {

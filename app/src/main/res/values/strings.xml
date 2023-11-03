@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">TaskIntempus</string>
+    <string name="app_name">Task Intempus</string>
     <string name="base_url">https://somebaseurl.com/</string>
     <string name="submit">Submit</string>
     <string name="database_name">employee_db</string>
