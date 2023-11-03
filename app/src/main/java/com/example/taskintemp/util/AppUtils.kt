@@ -57,14 +57,14 @@ object AppUtils {
     ) {
         val fromDatePicker = OnDateSetListener { _: DatePicker?, year: Int, monthOfYear: Int, dayOfMonth: Int ->
 
-            val fixedMonth = if (monthOfYear < 10) "0$monthOfYear" else "$monthOfYear"
+            val fixedMonth = if ((monthOfYear + 1) < 10) "0${monthOfYear + 1}" else "${monthOfYear + 1}"
             val fixedDay = if (dayOfMonth < 10) "0$dayOfMonth" else "$dayOfMonth"
 
             newDateSelected.invoke("$year-$fixedMonth-$fixedDay")
         }
         DatePickerDialog(
             this, fromDatePicker,
-           dYear, dMonth, dDay
+           dYear, dMonth-1, dDay
         ).show()
     }
 
