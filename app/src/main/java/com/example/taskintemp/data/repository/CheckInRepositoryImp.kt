@@ -22,7 +22,7 @@ class CheckInRepositoryImp
     }
 
     override suspend fun insertCheckIn(check_in_date: String) {
-       employeeDao.insertCheckInTime(employee = Employee(check_in_date = check_in_date))
+        employeeDao.insertCheckInTime(employee = Employee(check_in_date = check_in_date))
     }
 
     override fun getCurrentDateTimeModel(): DateModel {

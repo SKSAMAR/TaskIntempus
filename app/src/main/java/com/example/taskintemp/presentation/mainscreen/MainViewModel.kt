@@ -4,7 +4,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.viewModelScope
-import com.example.taskintemp.data.db.entity.Employee
 import com.example.taskintemp.data.remote.dto.DateTimeDto
 import com.example.taskintemp.data.remote.dto.toDateModel
 import com.example.taskintemp.domain.model.DateModel
@@ -15,11 +14,8 @@ import com.example.taskintemp.presentation.common.BaseViewModel
 import com.example.taskintemp.util.AppUtils.isSafeClick
 import com.example.taskintemp.util.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
@@ -29,13 +25,12 @@ class MainViewModel
     var invalidTimeMessage by mutableStateOf("")
     var operationLoading by mutableStateOf(false)
     var selectedTimeDto by mutableStateOf<DateTimeDto?>(null)
-    var allCheckInsList by mutableStateOf(emptyList<Employee>())
+    var allCheckInsList = useCases.getEmployeeList()
 
 
     init {
         getMostRecentCheckIn()
-        fetchAllCheckIns()
-//        getDateTimeFromApi()
+        // getDateTimeFromApi()
     }
 
     private fun getDateTimeFromApi() {
@@ -64,39 +59,18 @@ class MainViewModel
         }.launchIn(viewModelScope)
     }
 
-    /**
-    fun validateTimeSelected(hours: Int, minutes: Int) {
-    useCases.validateSelectedTime(state.value.receivedResponse?.date ?: "", hours, minutes)
-    .onEach {
-    when (it) {
-    is TimeValidation.Error -> {
-    invalidTimeMessage = "Date Time cannot be greater than current system time"
-    selectedTimeDto = it.selectedTimeDate
-    }
-    is TimeValidation.SuccessfullyValidated -> {
-    invalidTimeMessage = ""
-    selectedTimeDto = it.selectedTimeDate
-    }
-    }
-    }.launchIn(viewModelScope)
-    }
-     **/
-
     fun validateDateSelected(dateSelected: String, hours: Int, minutes: Int) {
-        useCases.validateSelectedDateTime(dateSelected, hours, minutes)
-            .onEach {
-                when (it) {
-                    is TimeValidation.Error -> {
-                        invalidTimeMessage = "Future Date time is not allowed"
-                        selectedTimeDto = it.selectedTimeDate
-                    }
+        when (val result = useCases.validateSelectedDateTime(dateSelected, hours, minutes)) {
+            is TimeValidation.Error -> {
+                invalidTimeMessage = "Future Date time is not allowed"
+                selectedTimeDto = result.selectedTimeDate
+            }
 
-                    is TimeValidation.SuccessfullyValidated -> {
-                        invalidTimeMessage = ""
-                        selectedTimeDto = it.selectedTimeDate
-                    }
-                }
-            }.launchIn(viewModelScope)
+            is TimeValidation.SuccessfullyValidated -> {
+                invalidTimeMessage = ""
+                selectedTimeDto = result.selectedTimeDate
+            }
+        }
     }
 
     fun addCheckIn() {
@@ -143,14 +117,5 @@ class MainViewModel
                 }
             }
         }.launchIn(viewModelScope)
-    }
-
-
-    private fun fetchAllCheckIns() {
-        viewModelScope.launch(Dispatchers.Main) {
-            useCases.getEmployeeList().collectLatest {
-                allCheckInsList = it
-            }
-        }
     }
 }
