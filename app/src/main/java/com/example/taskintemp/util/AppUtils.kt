@@ -43,7 +43,7 @@ object AppUtils {
         newTimeSelected: (hour: Int, minute: Int) -> Unit
     ) {
         val timePickerDialog = TimePickerDialog(this,
-            { view, hourOfDay, minutesOfDay -> newTimeSelected(hourOfDay, minutesOfDay) },
+            { _, hourOfDay, minutesOfDay -> newTimeSelected(hourOfDay, minutesOfDay) },
             hour,
             minute,
             true
