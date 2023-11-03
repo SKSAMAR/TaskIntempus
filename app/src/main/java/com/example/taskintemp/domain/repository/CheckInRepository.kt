@@ -11,6 +11,7 @@ interface CheckInRepository {
     suspend fun insertCheckIn(check_in_date: String)
     fun getCurrentDateTimeModel(): DateModel
     suspend fun getEmployeeByTimestamp(check_in_date: String): Employee?
+    suspend fun getMostRecentCheckIn(): Employee?
     fun getAllCheckInsRows(): Flow<List<Employee>>
 
 }

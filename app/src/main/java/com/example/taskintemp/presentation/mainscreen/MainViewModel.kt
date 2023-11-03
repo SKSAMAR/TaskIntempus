@@ -31,9 +31,11 @@ class MainViewModel
     var selectedTimeDto by mutableStateOf<DateTimeDto?>(null)
     var allCheckInsList by mutableStateOf(emptyList<Employee>())
 
+
     init {
+        getMostRecentCheckIn()
         fetchAllCheckIns()
-        getDateTimeFromApi()
+//        getDateTimeFromApi()
     }
 
     private fun getDateTimeFromApi() {
@@ -91,6 +93,7 @@ class MainViewModel
                         is Resource.Loading -> {
                             operationLoading = true
                         }
+
                         is Resource.Success -> {
                             operationLoading = false
                             invalidTimeMessage = ""
@@ -101,6 +104,26 @@ class MainViewModel
             }
         }
     }
+
+
+    private fun getMostRecentCheckIn() {
+        useCases.getMostRecentCheckIn().onEach {
+            when (it) {
+                is Resource.Error -> {
+                    getDateTimeFromApi()
+                }
+                is Resource.Loading -> {
+                    _state.value = ScreenState(isLoading = true)
+                }
+                is Resource.Success -> {
+                    val dateTimeDto = DateTimeDto(dateTime = it.data?.check_in_date ?: "")
+                    selectedTimeDto = dateTimeDto
+                    _state.value = ScreenState(receivedResponse = selectedTimeDto?.toDateModel())
+                }
+            }
+        }.launchIn(viewModelScope)
+    }
+
 
     private fun fetchAllCheckIns() {
         viewModelScope.launch(Dispatchers.Main) {

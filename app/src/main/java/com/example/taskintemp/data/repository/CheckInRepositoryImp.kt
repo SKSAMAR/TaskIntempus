@@ -34,6 +34,10 @@ class CheckInRepositoryImp
         return employeeDao.getEmployeeByTimestamp(check_in_date)
     }
 
+    override suspend fun getMostRecentCheckIn(): Employee? {
+        return employeeDao.getMostRecentCheckIn()
+    }
+
     override fun getAllCheckInsRows(): Flow<List<Employee>> {
         return employeeDao.getAllCheckInTimes()
     }

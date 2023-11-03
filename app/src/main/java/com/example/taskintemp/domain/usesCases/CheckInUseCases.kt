@@ -40,7 +40,7 @@ class CheckInUseCases
         try {
             emit(Resource.Loading())
             delay(2000L)
-            val date = getCurrentSystemDate()+" 06:30"
+            val date = getCurrentSystemDate() + " 06:30"
             val jsonResponse = "{\"dateTime\": \"$date\"}"
             val dataTimeDto = Gson().fromJson(jsonResponse, DateTimeDto::class.java)
             emit(Resource.Success(dataTimeDto))
@@ -49,12 +49,18 @@ class CheckInUseCases
         }
     }
 
-    fun validateSelectedTime(currentDate: String, hourOfDay: Int, minute: Int) : Flow<TimeValidation> = flow {
+    fun validateSelectedTime(
+        currentDate: String,
+        hourOfDay: Int,
+        minute: Int
+    ): Flow<TimeValidation> = flow {
         val fixedHour = if (hourOfDay < 10) "0$hourOfDay" else "$hourOfDay"
         val fixedMinutes = if (minute < 10) "0$minute" else "$minute"
         try {
-            if (hourOfDay > Calendar.getInstance().get(Calendar.HOUR_OF_DAY) || (hourOfDay == Calendar.getInstance()
-                .get(Calendar.HOUR_OF_DAY) && minute > Calendar.getInstance().get(Calendar.MINUTE))
+            if (hourOfDay > Calendar.getInstance()
+                    .get(Calendar.HOUR_OF_DAY) || (hourOfDay == Calendar.getInstance()
+                    .get(Calendar.HOUR_OF_DAY) && minute > Calendar.getInstance()
+                    .get(Calendar.MINUTE))
             ) {
                 emit(
                     TimeValidation.Error(DateTimeDto("$currentDate $fixedHour:$fixedMinutes"))
@@ -64,7 +70,7 @@ class CheckInUseCases
                     TimeValidation.SuccessfullyValidated(DateTimeDto("$currentDate $fixedHour:$fixedMinutes"))
                 )
             }
-        }catch (e: Exception){
+        } catch (e: Exception) {
             emit(
                 TimeValidation.Error(DateTimeDto("$currentDate $fixedHour:$fixedMinutes"))
             )
@@ -76,7 +82,7 @@ class CheckInUseCases
         repository.insertCheckIn(timeStamp)
     }
 
-    fun getEmployeeList(): Flow<List<Employee>>  {
+    fun getEmployeeList(): Flow<List<Employee>> {
         // more logic will be written in case
         return repository.getAllCheckInsRows()
     }
@@ -85,10 +91,24 @@ class CheckInUseCases
         try {
             emit(Resource.Loading())
             val response = repository.getEmployeeByTimestamp(timeStamp)
-            if (response == null){
+            if (response == null) {
                 emit(Resource.Success(""))
             } else {
                 emit(Resource.Error("Current Time is Already Checked In"))
+            }
+        } catch (e: Exception) {
+            emit(Resource.Error(e.localizedMessage ?: "An unexpected error occurred"))
+        }
+    }
+
+    fun getMostRecentCheckIn(): Flow<Resource<Employee?>> = flow {
+        try {
+            emit(Resource.Loading())
+            val response = repository.getMostRecentCheckIn()
+            if (response != null) {
+                emit(Resource.Success(response))
+            } else {
+                emit(Resource.Error("No Recent Check In Found"))
             }
         } catch (e: Exception) {
             emit(Resource.Error(e.localizedMessage ?: "An unexpected error occurred"))
