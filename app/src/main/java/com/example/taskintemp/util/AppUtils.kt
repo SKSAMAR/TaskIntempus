@@ -4,14 +4,10 @@ import android.app.DatePickerDialog
 import android.app.DatePickerDialog.OnDateSetListener
 import android.app.TimePickerDialog
 import android.content.Context
-import android.os.Build
 import android.os.SystemClock
 import android.widget.DatePicker
 import android.widget.Toast
 import java.text.SimpleDateFormat
-import java.time.Instant
-import java.time.format.DateTimeFormatter
-import java.util.Locale
 
 
 object AppUtils {
@@ -34,7 +30,7 @@ object AppUtils {
 
     fun getCurrentSystemDate(): String {
         val currentTime = System.currentTimeMillis()
-        return SimpleDateFormat("yyyy-MM-dd", Locale.US).format(currentTime)
+        return SimpleDateFormat("yyyy-MM-dd").format(currentTime)
     }
 
 
