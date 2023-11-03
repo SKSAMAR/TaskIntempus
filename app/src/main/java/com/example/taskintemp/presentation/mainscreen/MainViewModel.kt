@@ -59,6 +59,7 @@ class MainViewModel
         }.launchIn(viewModelScope)
     }
 
+
     fun validateDateSelected(dateSelected: String, hours: Int, minutes: Int) {
         when (val result = useCases.validateSelectedDateTime(dateSelected, hours, minutes)) {
             is TimeValidation.Error -> {
